@@ -1,6 +1,10 @@
 /**
  * Content script: runs on every page, checks URL against stored rules,
  * and performs text replacements in the DOM.
+ *
+ * Two modes per rule:
+ * - Text mode (default): walks text nodes, safe and surgical
+ * - HTML mode: operates on innerHTML, can modify tags/attributes/structure
  */
 
 (async function () {
@@ -14,7 +18,6 @@
       if (group.urlIsRegex) {
         return new RegExp(group.urlPattern).test(currentUrl);
       }
-      // Plain string: treat as substring match
       return currentUrl.includes(group.urlPattern);
     } catch {
       return false;
@@ -23,70 +26,43 @@
 
   if (matchingGroups.length === 0) return;
 
-  // Collect all search/replace pairs from matching groups
-  const replacements = matchingGroups.flatMap((group) =>
+  const allReplacements = matchingGroups.flatMap((group) =>
     (group.replacements || []).filter((r) => r.enabled !== false)
   );
 
-  if (replacements.length === 0) return;
+  if (allReplacements.length === 0) return;
 
-  // Walk all text nodes and apply replacements
-  const walker = document.createTreeWalker(
-    document.body,
-    NodeFilter.SHOW_TEXT,
-    null
-  );
+  const textRules = allReplacements.filter((r) => !r.htmlMode);
+  const htmlRules = allReplacements.filter((r) => r.htmlMode);
 
-  const textNodes = [];
-  while (walker.nextNode()) {
-    textNodes.push(walker.currentNode);
+  // --- Initial pass ---
+  if (htmlRules.length > 0) {
+    applyHtmlRules(document.body, htmlRules);
+  }
+  if (textRules.length > 0) {
+    applyTextRulesToTree(document.body, textRules);
   }
 
-  for (const node of textNodes) {
-    let text = node.nodeValue;
-    let changed = false;
+  // --- Observe future DOM changes ---
+  let paused = false;
 
-    for (const rule of replacements) {
-      let pattern;
-      try {
-        if (rule.searchIsRegex) {
-          pattern = new RegExp(rule.search, rule.regexFlags || "gi");
-        } else {
-          // Escape special regex chars for literal matching, global replace
-          const escaped = rule.search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-          pattern = new RegExp(escaped, rule.regexFlags || "gi");
-        }
-      } catch {
-        continue;
-      }
-
-      if (pattern.test(text)) {
-        // Reset lastIndex after test() for global regexes
-        pattern.lastIndex = 0;
-        text = text.replace(pattern, rule.replace);
-        changed = true;
-      }
-    }
-
-    if (changed) {
-      node.nodeValue = text;
-    }
-  }
-
-  // Observe future DOM changes and apply replacements to new nodes
   const observer = new MutationObserver((mutations) => {
+    if (paused) return;
+
     for (const mutation of mutations) {
       for (const addedNode of mutation.addedNodes) {
         if (addedNode.nodeType === Node.TEXT_NODE) {
-          applyToTextNode(addedNode, replacements);
+          if (textRules.length > 0) {
+            applyTextRulesToNode(addedNode, textRules);
+          }
         } else if (addedNode.nodeType === Node.ELEMENT_NODE) {
-          const innerWalker = document.createTreeWalker(
-            addedNode,
-            NodeFilter.SHOW_TEXT,
-            null
-          );
-          while (innerWalker.nextNode()) {
-            applyToTextNode(innerWalker.currentNode, replacements);
+          if (htmlRules.length > 0) {
+            paused = true;
+            applyHtmlRules(addedNode, htmlRules);
+            paused = false;
+          }
+          if (textRules.length > 0) {
+            applyTextRulesToTree(addedNode, textRules);
           }
         }
       }
@@ -95,27 +71,70 @@
 
   observer.observe(document.body, { childList: true, subtree: true });
 
-  function applyToTextNode(node, rules) {
-    let text = node.nodeValue;
+  // --- Helpers ---
+
+  function buildPattern(rule) {
+    if (rule.searchIsRegex) {
+      return new RegExp(rule.search, rule.regexFlags || "gi");
+    }
+    const escaped = rule.search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(escaped, rule.regexFlags || "gi");
+  }
+
+  function applyHtmlRules(element, rules) {
+    let html = element.innerHTML;
     let changed = false;
+
     for (const rule of rules) {
       let pattern;
       try {
-        if (rule.searchIsRegex) {
-          pattern = new RegExp(rule.search, rule.regexFlags || "gi");
-        } else {
-          const escaped = rule.search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-          pattern = new RegExp(escaped, rule.regexFlags || "gi");
-        }
+        pattern = buildPattern(rule);
       } catch {
         continue;
       }
+
+      if (pattern.test(html)) {
+        pattern.lastIndex = 0;
+        html = html.replace(pattern, rule.replace);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      element.innerHTML = html;
+    }
+  }
+
+  function applyTextRulesToTree(root, rules) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    const nodes = [];
+    while (walker.nextNode()) {
+      nodes.push(walker.currentNode);
+    }
+    for (const node of nodes) {
+      applyTextRulesToNode(node, rules);
+    }
+  }
+
+  function applyTextRulesToNode(node, rules) {
+    let text = node.nodeValue;
+    let changed = false;
+
+    for (const rule of rules) {
+      let pattern;
+      try {
+        pattern = buildPattern(rule);
+      } catch {
+        continue;
+      }
+
       if (pattern.test(text)) {
         pattern.lastIndex = 0;
         text = text.replace(pattern, rule.replace);
         changed = true;
       }
     }
+
     if (changed) {
       node.nodeValue = text;
     }

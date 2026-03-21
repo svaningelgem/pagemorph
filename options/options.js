@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       urlPattern: "",
       urlIsRegex: true,
       replacements: [
-        { search: "", replace: "", searchIsRegex: false, regexFlags: "gi", enabled: true },
+        { search: "", replace: "", searchIsRegex: false, regexFlags: "gi", htmlMode: false, enabled: true },
       ],
     });
     markDirty();
@@ -149,6 +149,8 @@ function render() {
         <input type="text" class="flags-input" value="${escapeAttr(rep.regexFlags || "gi")}"
                placeholder="gi" data-gi="${gi}" data-ri="${ri}" data-field="regexFlags"
                title="Regex flags (e.g. g, gi)">
+        <label class="html-toggle"><input type="checkbox" ${rep.htmlMode ? "checked" : ""}
+               data-gi="${gi}" data-ri="${ri}" data-field="htmlMode"> HTML</label>
         <button class="btn btn-danger btn-small" data-action="delete-rep"
                 data-gi="${gi}" data-ri="${ri}">x</button>
       `;
@@ -219,6 +221,7 @@ function handleClick(e) {
       replace: "",
       searchIsRegex: false,
       regexFlags: "gi",
+      htmlMode: false,
       enabled: true,
     });
     markDirty();

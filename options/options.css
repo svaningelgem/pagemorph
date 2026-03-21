@@ -184,6 +184,13 @@ input[type="text"]:focus {
   border-color: #8bc98b;
 }
 
+.html-toggle {
+  font-size: 12px;
+  white-space: nowrap;
+  color: #8a6d3b;
+  font-weight: 600;
+}
+
 .input-error {
   border-color: #d9534f !important;
   box-shadow: 0 0 0 2px rgba(217, 83, 79, 0.3) !important;
