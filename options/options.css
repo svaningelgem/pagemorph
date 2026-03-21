@@ -1,0 +1,163 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  color: #1a1a1a;
+  background: #f7f7f8;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+h1 {
+  font-size: 22px;
+  margin: 0 0 20px;
+}
+
+/* Rule group card */
+.rule-group {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.rule-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.rule-group-header input[type="text"] {
+  flex: 1;
+  min-width: 200px;
+}
+
+.rule-group-header label {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.replacements {
+  margin-left: 12px;
+}
+
+.replacement-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.replacement-row input[type="text"] {
+  flex: 1;
+  min-width: 120px;
+}
+
+.replacement-row label {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.arrow {
+  font-size: 16px;
+  color: #888;
+  flex-shrink: 0;
+}
+
+input[type="text"] {
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: monospace;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: #4a90d9;
+  box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.2);
+}
+
+.btn {
+  padding: 6px 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.btn:hover {
+  background: #e8e8e8;
+}
+
+.btn-primary {
+  background: #4a90d9;
+  color: #fff;
+  border-color: #4a90d9;
+}
+
+.btn-primary:hover {
+  background: #357abd;
+}
+
+.btn-danger {
+  color: #d9534f;
+  border-color: #d9534f;
+}
+
+.btn-danger:hover {
+  background: #d9534f;
+  color: #fff;
+}
+
+.btn-small {
+  padding: 3px 8px;
+  font-size: 12px;
+}
+
+.btn-add-replacement {
+  margin-top: 4px;
+  margin-left: 12px;
+}
+
+.flags-input {
+  width: 50px !important;
+  min-width: 50px !important;
+  flex: 0 !important;
+}
+
+.import-export {
+  margin-top: 20px;
+  display: flex;
+  gap: 8px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #333;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  z-index: 1000;
+}
+
+.enabled-toggle {
+  cursor: pointer;
+}

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Auto Text Replacer - Options</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Auto Text Replacer - Rules</h1>
+
+    <div id="rule-groups"></div>
+
+    <button id="btn-add-group" class="btn btn-primary">+ Add URL Pattern</button>
+
+    <div class="import-export">
+      <button id="btn-export" class="btn">Export Rules</button>
+      <button id="btn-import" class="btn">Import Rules</button>
+      <input type="file" id="file-import" accept=".json" hidden>
+    </div>
+
+    <div id="toast" class="toast" hidden></div>
+  </div>
+  <script src="options.js"></script>
+</body>
+</html>

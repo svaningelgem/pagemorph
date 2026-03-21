@@ -1,0 +1,33 @@
+{
+  "manifest_version": 2,
+  "name": "Auto Text Replacer",
+  "version": "1.0.0",
+  "description": "Automatically replace text on web pages using regex or plain string rules, scoped per URL pattern.",
+  "permissions": [
+    "storage",
+    "<all_urls>",
+    "activeTab"
+  ],
+  "browser_action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "48": "icons/icon-48.png",
+      "96": "icons/icon-96.png"
+    }
+  },
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "icons": {
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png"
+  }
+}
