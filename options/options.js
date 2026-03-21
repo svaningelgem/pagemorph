@@ -99,6 +99,12 @@ function saveWithValidation() {
   btn.textContent = "Everything saved";
   btn.classList.add("btn-saved");
   showToast("Rules saved.");
+
+  setTimeout(() => {
+    if (!dirty) {
+      btn.textContent = "Saved";
+    }
+  }, 2500);
 }
 
 function render() {
