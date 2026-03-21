@@ -161,3 +161,30 @@ input[type="text"]:focus {
 .enabled-toggle {
   cursor: pointer;
 }
+
+.top-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.btn-save {
+  background: #5cb85c;
+  color: #fff;
+  border-color: #5cb85c;
+  font-weight: 600;
+}
+
+.btn-save:hover {
+  background: #4cae4c;
+}
+
+.btn-saved {
+  background: #8bc98b;
+  border-color: #8bc98b;
+}
+
+.input-error {
+  border-color: #d9534f !important;
+  box-shadow: 0 0 0 2px rgba(217, 83, 79, 0.3) !important;
+}

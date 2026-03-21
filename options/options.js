@@ -1,4 +1,5 @@
 let rules = [];
+let dirty = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
   const stored = await browser.storage.local.get({ rules: [] });
@@ -10,19 +11,95 @@ document.addEventListener("DOMContentLoaded", async () => {
       urlPattern: "",
       urlIsRegex: true,
       replacements: [
-        { search: "", replace: "", searchIsRegex: false, regexFlags: "g", enabled: true },
+        { search: "", replace: "", searchIsRegex: false, regexFlags: "gi", enabled: true },
       ],
     });
-    save();
+    markDirty();
     render();
   });
 
+  document.getElementById("btn-save").addEventListener("click", saveWithValidation);
   document.getElementById("btn-export").addEventListener("click", exportRules);
   document.getElementById("btn-import").addEventListener("click", () => {
     document.getElementById("file-import").click();
   });
   document.getElementById("file-import").addEventListener("change", importRules);
 });
+
+function markDirty() {
+  dirty = true;
+  const btn = document.getElementById("btn-save");
+  btn.textContent = "Save";
+  btn.classList.remove("btn-saved");
+}
+
+function validate() {
+  const errors = [];
+
+  // Clear previous error highlights
+  document.querySelectorAll(".input-error").forEach((el) => el.classList.remove("input-error"));
+
+  rules.forEach((group, gi) => {
+    // Validate URL pattern if regex
+    if (group.urlIsRegex && group.urlPattern) {
+      try {
+        new RegExp(group.urlPattern);
+      } catch (e) {
+        errors.push({ gi, field: "urlPattern", msg: `URL pattern: ${e.message}` });
+      }
+    }
+
+    (group.replacements || []).forEach((rep, ri) => {
+      // Validate search regex
+      if (rep.searchIsRegex && rep.search) {
+        try {
+          new RegExp(rep.search, rep.regexFlags || "gi");
+        } catch (e) {
+          errors.push({ gi, ri, field: "search", msg: `Search regex: ${e.message}` });
+        }
+      }
+
+      // Validate flags
+      if (rep.regexFlags) {
+        try {
+          new RegExp("", rep.regexFlags);
+        } catch (e) {
+          errors.push({ gi, ri, field: "regexFlags", msg: `Flags: ${e.message}` });
+        }
+      }
+    });
+  });
+
+  // Highlight error fields
+  for (const err of errors) {
+    let selector;
+    if (err.ri !== undefined) {
+      selector = `[data-gi="${err.gi}"][data-ri="${err.ri}"][data-field="${err.field}"]`;
+    } else {
+      selector = `[data-gi="${err.gi}"][data-field="${err.field}"]`;
+    }
+    const el = document.querySelector(selector);
+    if (el) el.classList.add("input-error");
+  }
+
+  return errors;
+}
+
+function saveWithValidation() {
+  const errors = validate();
+  if (errors.length > 0) {
+    showToast("Invalid regex — check highlighted fields.");
+    return;
+  }
+
+  browser.storage.local.set({ rules });
+  dirty = false;
+
+  const btn = document.getElementById("btn-save");
+  btn.textContent = "Everything saved";
+  btn.classList.add("btn-saved");
+  showToast("Rules saved.");
+}
 
 function render() {
   const container = document.getElementById("rule-groups");
@@ -63,8 +140,8 @@ function render() {
                placeholder="Replace with..." data-gi="${gi}" data-ri="${ri}" data-field="replace">
         <label><input type="checkbox" ${rep.searchIsRegex ? "checked" : ""}
                data-gi="${gi}" data-ri="${ri}" data-field="searchIsRegex"> Regex</label>
-        <input type="text" class="flags-input" value="${escapeAttr(rep.regexFlags || "g")}"
-               placeholder="g" data-gi="${gi}" data-ri="${ri}" data-field="regexFlags"
+        <input type="text" class="flags-input" value="${escapeAttr(rep.regexFlags || "gi")}"
+               placeholder="gi" data-gi="${gi}" data-ri="${ri}" data-field="regexFlags"
                title="Regex flags (e.g. g, gi)">
         <button class="btn btn-danger btn-small" data-action="delete-rep"
                 data-gi="${gi}" data-ri="${ri}">x</button>
@@ -98,7 +175,7 @@ function handleInput(e) {
   } else {
     rules[gi][field] = e.target.value;
   }
-  save();
+  markDirty();
 }
 
 function handleChange(e) {
@@ -111,7 +188,7 @@ function handleChange(e) {
   } else {
     rules[gi][field] = e.target.checked;
   }
-  save();
+  markDirty();
 }
 
 function handleClick(e) {
@@ -123,28 +200,24 @@ function handleClick(e) {
 
   if (action === "delete-group") {
     rules.splice(gi, 1);
-    save();
+    markDirty();
     render();
   } else if (action === "delete-rep") {
     const ri = parseInt(btn.dataset.ri, 10);
     rules[gi].replacements.splice(ri, 1);
-    save();
+    markDirty();
     render();
   } else if (action === "add-rep") {
     rules[gi].replacements.push({
       search: "",
       replace: "",
       searchIsRegex: false,
-      regexFlags: "g",
+      regexFlags: "gi",
       enabled: true,
     });
-    save();
+    markDirty();
     render();
   }
-}
-
-function save() {
-  browser.storage.local.set({ rules });
 }
 
 function exportRules() {
@@ -168,9 +241,8 @@ function importRules(e) {
       const imported = JSON.parse(ev.target.result);
       if (!Array.isArray(imported)) throw new Error("Invalid format");
       rules = imported;
-      await save();
+      await saveWithValidation();
       render();
-      showToast("Rules imported.");
     } catch {
       showToast("Import failed: invalid JSON.");
     }

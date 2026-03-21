@@ -50,11 +50,11 @@
       let pattern;
       try {
         if (rule.searchIsRegex) {
-          pattern = new RegExp(rule.search, rule.regexFlags || "g");
+          pattern = new RegExp(rule.search, rule.regexFlags || "gi");
         } else {
           // Escape special regex chars for literal matching, global replace
           const escaped = rule.search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-          pattern = new RegExp(escaped, "g");
+          pattern = new RegExp(escaped, rule.regexFlags || "gi");
         }
       } catch {
         continue;
@@ -102,10 +102,10 @@
       let pattern;
       try {
         if (rule.searchIsRegex) {
-          pattern = new RegExp(rule.search, rule.regexFlags || "g");
+          pattern = new RegExp(rule.search, rule.regexFlags || "gi");
         } else {
           const escaped = rule.search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-          pattern = new RegExp(escaped, "g");
+          pattern = new RegExp(escaped, rule.regexFlags || "gi");
         }
       } catch {
         continue;
