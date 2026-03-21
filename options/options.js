@@ -152,7 +152,7 @@ function exportRules() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "auto-text-replacer-rules.json";
+  a.download = "pagemorph-rules.json";
   a.click();
   URL.revokeObjectURL(url);
   showToast("Rules exported.");

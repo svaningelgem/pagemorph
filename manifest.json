@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "Auto Text Replacer",
+  "name": "PageMorph",
   "version": "1.0.0",
-  "description": "Automatically replace text on web pages using regex or plain string rules, scoped per URL pattern.",
+  "description": "PageMorph: automatically replace text on web pages using regex or plain string rules, scoped per URL pattern.",
   "permissions": [
     "storage",
     "<all_urls>",
